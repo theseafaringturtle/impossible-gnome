@@ -7,10 +7,7 @@ let path = require("path");
 
 let GNOME_ENV = process.env.GNOME_ENV;
 
-if (!GNOME_ENV || GNOME_ENV === "docker") {
-  GNOME_ENV = "dev";
-}
-
+console.info(`loading server.${GNOME_ENV} config..`);
 let rawConfig = require(`./server.${GNOME_ENV}`);
 
 let neo4jCreds;

@@ -5,14 +5,11 @@ the `old facebook app secret:7922d3fd803b524876e6ef6d16ad8cea`
 
 # How to run the project localy:
 you have to change these changes to these files:
-1- Go to `/api/src/config/server.dev.json` and change:
-* line 1:`host` from `"0.0.0.0"` to `"localhost"`
-* line 8:`sqs endpoint` from `"http://sqs:4568/"` to `"http://localhost:4568/"`
 
-2-Go to `/api/src/config/server.js` and change:
+1-Go to `/api/src/config/server.js` and change:
 * line 26: at the end of the line 26 `let processedHost` from `"172.18.0.3"` to `"localhost"`
 
-3- go to `/web/package.json` and change the `proxy` from `"https://api.humankind.codeyourfuture.io"` to `"http://localhost:3000/"`
+2- go to `/web/package.json` and change the `proxy` from `"https://api.humankind.codeyourfuture.io"` to `"http://localhost:3000/"`
 
 ### to run the backend from your terminal go to `api` folder and run : `NODE_PATH=src node index.js`
 ### to run the frontend from your terminal go to `web` folder and run : `npm start`

@@ -50,8 +50,10 @@ class FeedbackController extends Controller {
       .done(body => {
         body = JSON.parse(body);
         // Success will be true or false depending upon captcha validation.
-        if ((body.success !== undefined && !body.success) || err) {
-          reply({ msg: `error: ${err}` }).code(500);
+        if (body.success !== undefined && !body.success) {
+          reply({
+            msg: `error: Google think that your are a robot. Please rty again later`
+          }).code(500);
         }
         EmailService.sendFeedbackEmail(req.payload);
         reply(true).code(200);

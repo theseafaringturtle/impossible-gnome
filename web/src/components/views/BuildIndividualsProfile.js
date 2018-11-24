@@ -90,11 +90,10 @@ export default class BuildIndividualsProfile extends Component {
         body: JSON.stringify({
           imageData: res
         })
-      })
+      }).then(handleErrors)
         .then(response => {
           return response.json();
         })
-        .then(handleErrors)
         .then(response => {
           this.setState({
             imageSource: response.imageSource,

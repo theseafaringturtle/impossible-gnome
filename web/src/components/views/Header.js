@@ -132,9 +132,9 @@ class Header extends Component {
             <Col sm={2} />
             <Col sm={2} id="headerSignInLink">
               <span
-                name="dispalyLoginForm"
+                name="displayLoginForm"
                 onClick={this.props.toggleDisplayForm}>
-                Sign in &nbsp;&nbsp;
+                {this.props.isLoginFormVisible() ? "Register":"Sign in "}&nbsp;&nbsp;
                 <i className="fa fa-lock" aria-hidden="true" />
               </span>
             </Col>

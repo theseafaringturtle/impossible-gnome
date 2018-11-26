@@ -151,7 +151,7 @@ export default class LandingPage extends Component {
               email: "",
               password: "",
               confirmPassword: "",
-              error: "Error : the user already exists"
+              error: err.message
             },
             () => {
               //clear the error message

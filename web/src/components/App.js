@@ -113,17 +113,21 @@ class App extends Component {
   }
 
   toggleDisplayForm = e => {
-    if (e.target.textContent.trim() !== "Sign in") {
+    if (e.target.textContent.trim() === "Sign in" && !this.state.login) {
       this.setState({
-        register: true,
-        login: !this.state.login
-      });
-    } else {
-      this.setState({
-        register: false,
-        login: !this.state.login
-      });
+        login: true,
+        register: false
+      })
     }
+    else {
+      this.setState({
+        login: false,
+        register: true
+      })
+    }
+  };
+  isLoginFormVisible = () => {
+    return this.state.login;
   };
   getUser = () => {
     return fetch("/api/user/get", {
@@ -162,6 +166,7 @@ class App extends Component {
                 <Header
                   user={this.state.user}
                   toggleDisplayForm={this.toggleDisplayForm}
+                  isLoginFormVisible={this.isLoginFormVisible}
                 />
               </header>
             </Col>

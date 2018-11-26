@@ -235,10 +235,10 @@ class AuthController extends Controller {
           });
       })
       .error(e => {
-        if (e.msg === "user already exists") {
-          reply({ msg: e }).code(400);
+        if (e.message === "user already exists") {
+          reply({ msg: e.message }).code(400);
         } else {
-          reply({ msg: e }).code(500);
+          reply({ msg: e.message }).code(500);
         }
       });
   }

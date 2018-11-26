@@ -48,6 +48,7 @@ const Main = props => {
               user={props.user}
               setUser={props.setUser}
               getUser={props.getUser}
+              updateUser={props.updateUser}
             />
           ) : (
             <BuildIndividualsProfile
@@ -55,6 +56,7 @@ const Main = props => {
               user={props.user}
               setUser={props.setUser}
               getUser={props.getUser}
+              updateUser={props.updateUser}
             />
           )
         }
@@ -143,6 +145,13 @@ class App extends Component {
   setUser = user => {
     this.setState({ user });
   };
+  updateUser = (patch) =>{
+    let updatedUser = {...this.state.user};
+    for(let key in patch) {
+      updatedUser[key] = patch[key];
+    }
+    this.setUser( updatedUser );
+  };
   render() {
     return (
       <Router>
@@ -163,6 +172,7 @@ class App extends Component {
                 user={this.state.user}
                 setUser={this.setUser}
                 getUser={this.getUser}
+                updateUser={this.updateUser}
                 location={this.props.location}
                 register={this.state.register}
                 login={this.state.login}

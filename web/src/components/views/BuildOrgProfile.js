@@ -1,4 +1,4 @@
-import React, { Component, Fragment } from "react";
+import React, {Component, Fragment} from "react";
 import {
   Row,
   Col,
@@ -10,51 +10,47 @@ import {
   Alert
 } from "reactstrap";
 import Interest from "./Interest";
-import { RingLoader } from "react-spinners";
-import { getBase64 } from "../../utillity/helpers";
-import { handleErrors } from "../../utillity/helpers";
+import {RingLoader} from "react-spinners";
+import {getBase64} from "../../utillity/helpers";
+import {handleErrors} from "../../utillity/helpers";
 import "../../assets/css/view/BuildOrgProfile.css"
 
 export default class BuildOrgProfile extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      name: this.props.user.organisationName
-        ? this.props.user.organisationName
-        : "",
-      description: this.props.user.description
-        ? this.props.user.description
-        : "",
-      url: this.props.user.url ? this.props.user.url : "",
-      imageSource: this.props.user.imageSource
-        ? this.props.user.imageSource
-        : "",
-      interests: this.props.user.interests
-        ? new Set(
-            this.props.user.interests.map(interest => interest.interestID)
-          )
-        : "",
+      name: "",
+      description: "",
+      url: "",
+      imageSource: "",
+      interests: new Set(),
       uploadingImage: false,
       imageLoadError: null,
-      showInterestsMoreInfo: false
+      showInterestsMoreInfo: false,
+      pageLoaded: false
     };
   }
-
-  componentWillReceiveProps(nextProp) {
-    let interests = new Set();
-    if (nextProp.user.interests) {
-      nextProp.user.interests.forEach(interest => {
-        interests.add(interest.interestID);
-      });
-      this.setState({
-        name: nextProp.user.organisationName,
-        description: nextProp.user.description,
-        url: nextProp.user.url,
-        imageSource: nextProp.user.imageSource,
-        interests: interests
-      });
-    }
+  componentDidMount(){
+    this.props.getUser().then(user => {
+      this.props.setUser(user);
+      let interests = new Set();
+      if (user.interests) {
+        user.interests.forEach(interest => {
+          interests.add(interest.interestID);
+        });
+        this.setState({
+          name: user.organisationName,
+          description: user.description,
+          url: user.url,
+          imageSource: user.imageSource,
+          interests: interests,
+          approved: user.approved,
+          pageLoaded: true
+        });
+      }
+    });
   }
+
   handleChange = e => {
     const name = e.target.name;
     const value = e.target.value;
@@ -69,10 +65,10 @@ export default class BuildOrgProfile extends Component {
     let interests = new Set(this.state.interests);
     if (interests.has(interestID)) {
       interests.delete(interestID);
-      this.setState({ interests });
+      this.setState({interests: interests});
     } else {
       interests.add(interestID);
-      this.setState({ interests });
+      this.setState({interests: interests});
     }
   };
 
@@ -91,7 +87,7 @@ export default class BuildOrgProfile extends Component {
           imageData: res
         })
       }).then(handleErrors)
-          .then(response => {
+        .then(response => {
           return response.json();
         })
         .then(response => {
@@ -99,6 +95,7 @@ export default class BuildOrgProfile extends Component {
             imageSource: response.imageSource,
             uploadingImage: false
           });
+          this.props.updateUser({imageSource : response.imageSource})
         })
         .catch(err => {
           this.setState(
@@ -152,12 +149,8 @@ export default class BuildOrgProfile extends Component {
         interests: [...this.state.interests]
       })
     })
-      //just for see the result of the operation...needs to be removed
       .then(handleErrors)
       .then(response => {
-        this.setState({
-          upladingImage: false
-        });
         return response.json();
       })
       .then(response => {
@@ -198,14 +191,14 @@ export default class BuildOrgProfile extends Component {
     }
   };
 
-  isPageRady = () => {
-    return this.props.user.interests;
+  isPageReady = () => {
+    return this.state.pageLoaded;
   };
 
   render() {
-    return !this.isPageRady() ? (
+    return !this.isPageReady() ? (
       <Row>
-        <Col xs={4} />
+        <Col xs={4}/>
         <Col xs={4} id="interestRingLoader">
           <div className="RingLoader center-loading">
             <RingLoader
@@ -215,15 +208,15 @@ export default class BuildOrgProfile extends Component {
             />
           </div>
         </Col>
-        <Col xs={4} />
+        <Col xs={4}/>
       </Row>
     ) : (
       <Fragment>
-        {!this.props.user.approved ? (
+        {!this.state.approved ? (
           <Row id="unApprovedOrgsMesage">
             <Col sm={12}>
               <p>
-                <i className="fa fa-info-circle" aria-hidden="true" />&nbsp;&nbsp;&nbsp;
+                <i className="fa fa-info-circle" aria-hidden="true"/>&nbsp;&nbsp;&nbsp;
                 Before you can start posting we need to verify your account.
                 Please fill out the details below to get started.
               </p>
@@ -234,7 +227,7 @@ export default class BuildOrgProfile extends Component {
           <Col sm={12}>
             <Form>
               <FormGroup row id="profilePictureContainer">
-                <Col sm={1} />
+                <Col sm={1}/>
                 <Col sm={10}>
                   <Row>
                     <Col sm={2} id="profilePicture">
@@ -249,9 +242,7 @@ export default class BuildOrgProfile extends Component {
                         <img
                           id="preview"
                           src={
-                            this.state.imageSource !== ""
-                              ? this.state.imageSource
-                              : this.props.user.imageSource
+                            this.state.imageSource
                           }
                           alt={this.state.name}
                         />
@@ -272,7 +263,7 @@ export default class BuildOrgProfile extends Component {
                           onChange={this.handleImageSelection}
                         />
                       </Label>
-                      <br />
+                      <br/>
                       {this.state.imageLoadError ? (
                         <Alert color="danger">
                           {" "}
@@ -286,14 +277,14 @@ export default class BuildOrgProfile extends Component {
                 </Col>
               </FormGroup>
               <FormGroup row>
-                <Col sm={1} />
+                <Col sm={1}/>
                 <Label for="name" sm={10}>
                   Name
                 </Label>
-                <Col sm={1} />
+                <Col sm={1}/>
               </FormGroup>
               <FormGroup row>
-                <Col sm={1} />
+                <Col sm={1}/>
                 <Col sm={10} id="orgName">
                   <Input
                     type="text"
@@ -302,38 +293,38 @@ export default class BuildOrgProfile extends Component {
                     onChange={this.handleChange}
                   />
                 </Col>
-                <Col sm={1} />
+                <Col sm={1}/>
               </FormGroup>
 
               <FormGroup row>
-                <Col sm={1} />
+                <Col sm={1}/>
                 <Label for="description" sm={10}>
                   A little bit about you
                 </Label>
-                <Col sm={1} />
+                <Col sm={1}/>
               </FormGroup>
               <FormGroup row>
-                <Col sm={1} />
+                <Col sm={1}/>
                 <Col sm={10} id="orgDescription">
                   <Input
                     id="textarea"
                     type="textarea"
-                    name="description" 
-                     value={this.state.description}
+                    name="description"
+                    value={this.state.description}
                     onChange={this.handleChange}
                   />
                 </Col>
-                <Col sm={1} />
+                <Col sm={1}/>
               </FormGroup>
               <FormGroup row>
-                <Col sm={1} />
+                <Col sm={1}/>
                 <Label for="url" sm={10}>
                   Url
                 </Label>
-                <Col sm={1} />
+                <Col sm={1}/>
               </FormGroup>
               <FormGroup row>
-                <Col sm={1} />
+                <Col sm={1}/>
                 <Col sm={10} id="orgUrl">
                   <Input
                     type="url"
@@ -343,19 +334,18 @@ export default class BuildOrgProfile extends Component {
                     onChange={this.handleChange}
                   />
                 </Col>
-                <Col sm={1} />
+                <Col sm={1}/>
               </FormGroup>
               <Row>
-                <Col sm={1} />
+                <Col sm={1}/>
                 <Col sm={10} id="interestsHeading">
                   <p>Which services do you provide (Remit)</p>
                 </Col>
-                <Col sm={1} />
+                <Col sm={1}/>
               </Row>
               <FormGroup row>
                 <Col sm={12}>
                   <Interest
-                    user={this.props.user}
                     setUser={this.props.setUser}
                     getUser={this.props.getUser}
                     handleInterestSelection={this.handleInterestSelection}
@@ -368,14 +358,14 @@ export default class BuildOrgProfile extends Component {
                 </Col>
               </FormGroup>
               <Row>
-                <Col sm={1} />
+                <Col sm={1}/>
                 <Col sm={10}>
-                  <hr />
+                  <hr/>
                 </Col>
-                <Col sm={1} />
+                <Col sm={1}/>
               </Row>
               <Row>
-                <Col sm={1} />
+                <Col sm={1}/>
                 <Col sm={10}>
                   <Button
                     id="doneProfileButton"
@@ -383,7 +373,7 @@ export default class BuildOrgProfile extends Component {
                     Done
                   </Button>
                 </Col>
-                <Col sm={1} />
+                <Col sm={1}/>
               </Row>
             </Form>
           </Col>

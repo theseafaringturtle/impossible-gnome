@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, {Component} from "react";
 import {
   Row,
   Col,
@@ -10,51 +10,48 @@ import {
   Alert
 } from "reactstrap";
 import Interest from "./Interest";
-import { RingLoader } from "react-spinners";
-import { getBase64 } from "../../utillity/helpers";
-import { handleErrors } from "../../utillity/helpers";
+import {RingLoader} from "react-spinners";
+import {getBase64} from "../../utillity/helpers";
+import {handleErrors} from "../../utillity/helpers";
 import '../../assets/css/view/BuildIndividualsProfile.css'
 
 export default class BuildIndividualsProfile extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      firstName: this.props.user.firstName ? this.props.user.firstName : "",
-      lastName: this.props.user.lastName ? this.props.user.lastName : "",
-      description: this.props.user.description
-        ? this.props.user.description
-        : "",
-      url: this.props.user.url ? this.props.user.url : "",
-      imageSource: this.props.user.imageSource
-        ? this.props.user.imageSource
-        : "",
-      interests: this.props.user.interests
-        ? new Set(
-            this.props.user.interests.map(interest => interest.interestID)
-          )
-        : new Set(),
+      firstName: "",
+      lastName: "",
+      description: "",
+      url: "",
+      imageSource: "",
+      interests: new Set(),
       uploadingImage: false,
       imageLoadError: null,
-      showInterestsMoreInfo: false
+      showInterestsMoreInfo: false,
+      pageLoaded: false
     };
   }
-
-  componentWillReceiveProps(nextProp) {
-    let interests = new Set();
-    if (nextProp.user.interests) {
-      nextProp.user.interests.forEach(interest => {
-        interests.add(interest.interestID);
-      });
-      this.setState({
-        firstName: nextProp.user.firstName,
-        lastName: nextProp.user.lastName,
-        description: nextProp.user.description,
-        url: nextProp.user.url,
-        imageSource: nextProp.user.imageSource,
-        interests: interests
-      });
-    }
+  componentDidMount(){
+    this.props.getUser().then(user => {
+      this.props.setUser(user);
+      let interests = new Set();
+      if (user.interests) {
+        user.interests.forEach(interest => {
+          interests.add(interest.interestID);
+        });
+        this.setState({
+          firstName: user.firstName,
+          lastName: user.lastName,
+          description: user.description,
+          url: user.url,
+          imageSource: user.imageSource,
+          interests: interests,
+          pageLoaded: true
+        });
+      }
+    });
   }
+
   handleChange = e => {
     const name = e.target.name;
     const value = e.target.value;
@@ -69,10 +66,10 @@ export default class BuildIndividualsProfile extends Component {
     let interests = new Set(this.state.interests);
     if (interests.has(interestID)) {
       interests.delete(interestID);
-      this.setState({ interests });
+      this.setState({interests: interests});
     } else {
       interests.add(interestID);
-      this.setState({ interests });
+      this.setState({interests: interests});
     }
   };
 
@@ -99,6 +96,7 @@ export default class BuildIndividualsProfile extends Component {
             imageSource: response.imageSource,
             uploadingImage: false
           });
+          this.props.updateUser({imageSource : response.imageSource})
         })
         .catch(err => {
           this.setState(
@@ -153,12 +151,8 @@ export default class BuildIndividualsProfile extends Component {
         interests: [...this.state.interests]
       })
     })
-      //just for see the result of the operation...needs to be removed
       .then(handleErrors)
       .then(response => {
-        this.setState({
-          upladingImage: false
-        });
         return response.json();
       })
       .then(response => {
@@ -199,14 +193,14 @@ export default class BuildIndividualsProfile extends Component {
     }
   };
 
-  isPageRady = () => {
-    return this.props.user;
+  isPageReady = () => {
+    return this.state.pageLoaded;
   };
 
   render() {
-    return !this.isPageRady() ? (
+    return !this.isPageReady() ? (
       <Row>
-        <Col xs={4} />
+        <Col xs={4}/>
         <Col xs={4} id="interestRingLoader">
           <div className="RingLoader center-loading">
             <RingLoader
@@ -216,14 +210,14 @@ export default class BuildIndividualsProfile extends Component {
             />
           </div>
         </Col>
-        <Col xs={4} />
+        <Col xs={4}/>
       </Row>
     ) : (
       <Row id="profile">
         <Col sm={12}>
           <Form>
             <FormGroup row id="profilePictureContainer">
-              <Col sm={1} />
+              <Col sm={1}/>
 
               <Col sm={10}>
                 <Row>
@@ -239,9 +233,7 @@ export default class BuildIndividualsProfile extends Component {
                       <img
                         id="preview"
                         src={
-                          this.state.imageSource !== ""
-                            ? this.state.imageSource
-                            : this.props.user.imageSource
+                          this.state.imageSource
                         }
                         alt={this.state.firstName}
                       />
@@ -262,7 +254,7 @@ export default class BuildIndividualsProfile extends Component {
                         onChange={this.handleImageSelection}
                       />
                     </Label>
-                    <br />
+                    <br/>
                     {this.state.imageLoadError ? (
                       <Alert color="danger"> {this.state.imageLoadError}</Alert>
                     ) : (
@@ -273,14 +265,14 @@ export default class BuildIndividualsProfile extends Component {
               </Col>
             </FormGroup>
             <FormGroup row>
-              <Col sm={1} />
+              <Col sm={1}/>
               <Label for="firstName" sm={10}>
                 First Name
               </Label>
-              <Col sm={1} />
+              <Col sm={1}/>
             </FormGroup>
             <FormGroup row>
-              <Col sm={1} />
+              <Col sm={1}/>
               <Col sm={10} id="firstName">
                 <Input
                   type="text"
@@ -290,17 +282,17 @@ export default class BuildIndividualsProfile extends Component {
                   onChange={this.handleChange}
                 />
               </Col>
-              <Col sm={1} />
+              <Col sm={1}/>
             </FormGroup>
             <FormGroup row>
-              <Col sm={1} />
+              <Col sm={1}/>
               <Label for="lastName" sm={10}>
                 Last Name
               </Label>
-              <Col sm={1} />
+              <Col sm={1}/>
             </FormGroup>
             <FormGroup row>
-              <Col sm={1} />
+              <Col sm={1}/>
               <Col sm={10}>
                 <Input
                   type="text"
@@ -311,38 +303,38 @@ export default class BuildIndividualsProfile extends Component {
                   onChange={this.handleChange}
                 />
               </Col>
-              <Col sm={1} />
+              <Col sm={1}/>
             </FormGroup>
             <FormGroup row>
-              <Col sm={1} />
+              <Col sm={1}/>
               <Label for="description" sm={10}>
                 A little bit about you
               </Label>
-              <Col sm={1} />
+              <Col sm={1}/>
             </FormGroup>
             <FormGroup row>
-              <Col sm={1} />
+              <Col sm={1}/>
               <Col sm={10}>
                 <Input className="about-me-profile"
-                  placeholder="What brings you here?"
-                  type="textarea"
-                  name="description"
-                  id="description"
-                  value={this.state.description}
-                  onChange={this.handleChange}
+                       placeholder="What brings you here?"
+                       type="textarea"
+                       name="description"
+                       id="description"
+                       value={this.state.description}
+                       onChange={this.handleChange}
                 />
               </Col>
-              <Col sm={1} />
+              <Col sm={1}/>
             </FormGroup>
             <FormGroup row>
-              <Col sm={1} />
+              <Col sm={1}/>
               <Label for="url" sm={10}>
                 Url
               </Label>
-              <Col sm={1} />
+              <Col sm={1}/>
             </FormGroup>
             <FormGroup row>
-              <Col sm={1} />
+              <Col sm={1}/>
               <Col sm={10}>
                 <Input
                   type="url"
@@ -353,21 +345,20 @@ export default class BuildIndividualsProfile extends Component {
                   onChange={this.handleChange}
                 />
               </Col>
-              <Col sm={1} />
+              <Col sm={1}/>
             </FormGroup>
             <Row>
-              <Col sm={1} />
+              <Col sm={1}/>
               <Col sm={10} id="interestsHeading">
                 <p>
                   What opportunities would you like to hear about? (Remit)
                 </p>
               </Col>
-              <Col sm={1} />
+              <Col sm={1}/>
             </Row>
             <FormGroup row>
               <Col sm={12}>
                 <Interest
-                  user={this.props.user}
                   setUser={this.props.setUser}
                   getUser={this.props.getUser}
                   handleInterestSelection={this.handleInterestSelection}
@@ -378,14 +369,14 @@ export default class BuildIndividualsProfile extends Component {
               </Col>
             </FormGroup>
             <Row>
-              <Col sm={1} />
+              <Col sm={1}/>
               <Col sm={10}>
-                <hr />
+                <hr/>
               </Col>
-              <Col sm={1} />
+              <Col sm={1}/>
             </Row>
             <Row>
-              <Col sm={1} />
+              <Col sm={1}/>
               <Col sm={10}>
                 <Button
                   id="doneProfileButton"
@@ -393,7 +384,7 @@ export default class BuildIndividualsProfile extends Component {
                   Done
                 </Button>
               </Col>
-              <Col sm={1} />
+              <Col sm={1}/>
             </Row>
           </Form>
         </Col>

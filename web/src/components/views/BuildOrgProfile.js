@@ -32,6 +32,10 @@ export default class BuildOrgProfile extends Component {
   }
   componentDidMount(){
     this.props.getUser().then(user => {
+      if(Object.keys(user).length === 0) {//user object is empty
+        this.props.history.push("/");
+        return;
+      }
       this.props.setUser(user);
       let interests = new Set();
       if (user.interests) {

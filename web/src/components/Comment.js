@@ -18,7 +18,6 @@ export default class Comment extends Component {
                 placeholder="Interested? Drop your line here. Hit enter to sent."
                 onChange={e => this.props.handleChange(e)}
                 onKeyUp={e => this.props.handleKeyUp(e, this.props.postID)}
-                value={this.props.newComment}
               />
             </InputGroup>
           </Col>

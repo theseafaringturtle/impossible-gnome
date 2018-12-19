@@ -5,7 +5,8 @@ import '../assets/css/view/DisplayPost.css'
 class DisplayPost extends Component {
   state = {
     loadComment: "",
-    showComments: false
+    showComments: false,
+    newComment: ""
   };
 
   toggleComment = e => {
@@ -22,6 +23,38 @@ class DisplayPost extends Component {
         showComments: false,
         commentsDisplayed: false
       });
+    }
+  };
+
+  handleChange = event => {
+    // input is the Comment
+    this.setState({ newComment: event.target.value });
+  };
+
+  handleKeyUp = (e, postID) => {
+    const keyCode = e.keyCode;
+    //detecting enter key
+    if (keyCode === 13) {
+      fetch(`/api/post/${postID}/comment`, {
+        method: "POST",
+        body: JSON.stringify({ content: this.state.newComment }),
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        },
+        credentials: "same-origin"
+      }).then(() => {
+        this.props.getComments(postID);
+      });
+      this.setState(
+        {
+          newComment: ""
+        }
+        /*() => {
+          this.forceUpdate();
+        }*/
+      );
+      e.target.value = "";
     }
   };
 
@@ -172,9 +205,8 @@ class DisplayPost extends Component {
               feedData={this.props.postData}
               user={this.props.user}
               comments={this.props.postData.comments}
-              newComment={this.props.newComment}
-              handleChange={this.props.handleChange}
-              handleKeyUp={this.props.handleKeyUp}
+              handleChange={this.handleChange}
+              handleKeyUp={this.handleKeyUp}
               showComments={this.state.showComments}
               toggleComment={this.state.toggleComment}
               handleShowProfile={this.props.handleShowProfile}

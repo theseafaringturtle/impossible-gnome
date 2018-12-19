@@ -176,36 +176,6 @@ class Feed extends Component {
     });
   };
 
-  handleChange = event => {
-    // input is the Comment
-    this.setState({ newComment: event.target.value });
-  };
-
-  handleKeyUp = (e, postID) => {
-    const keyCode = e.keyCode;
-    //detecting enter key
-    if (keyCode === 13) {
-      fetch(`/api/post/${postID}/comment`, {
-        method: "POST",
-        body: JSON.stringify({ content: this.state.newComment }),
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json"
-        },
-        credentials: "same-origin"
-      }).then(() => {
-        this.getComments(postID);
-      });
-      this.setState(
-        {
-          newComment: ""
-        },
-        () => {
-          this.forceUpdate();
-        }
-      );
-    }
-  };
   handleShowProfile = userID => {
     {window.scrollTo(0,0)}
     this.setState({
@@ -323,9 +293,7 @@ class Feed extends Component {
                       user={user}
                       handlePostUpdate={this.handlePostUpdate}
                       handlePostDelete={this.handlePostDelete}
-                      newComment={this.state.newComment}
-                      handleChange={this.handleChange}
-                      handleKeyUp={this.handleKeyUp}
+                      getComments={this.getComments}
                       handleShowProfile={this.handleShowProfile}
                       history={this.props.history}
                       handleCommentDelete={this.handleCommentDelete}

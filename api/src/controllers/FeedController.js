@@ -11,7 +11,7 @@ class FeedController extends Controller {
 
     this.route("getFeed", {
       method: "GET",
-      path: "/api/feed",
+      path: "/api/feed/{startPage}-{endPage}",
       auth: "session",
       handler: this.getMainFeed
     });
@@ -19,7 +19,7 @@ class FeedController extends Controller {
 
   getMainFeed(request, reply) {
     return feedModel
-      .get(request.auth.credentials.userID)
+      .get(request.auth.credentials.userID,request.params.startPage,request.params.endPage)
       .done(data => {
         reply.response(
           data.map(node => ({

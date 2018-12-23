@@ -14,8 +14,10 @@ const locationSearch = config.settings.feed_use_location
 )`
   : "(true)";
 
+const pageSize = 5;
+
 class FeedModel extends Model {
-  get(userID) {
+  get(userID,startPage,endPage) {
     return new Sequence((accept, reject) => {
       this.db.query(
         `MATCH (:Person {userID: {userID}}) -[:FOLLOWS]-> (friend:Person)
@@ -29,15 +31,15 @@ class FeedModel extends Model {
     })
       .then((accept, reject, friendCount) => {
         if (friendCount === 0) {
-          this._getFeedWithoutFriends(userID).done(accept);
+          this._getFeedWithoutFriends(userID,startPage,endPage).done(accept);
         } else {
-          this._getFeedWithFriends(userID).done(accept);
+          this._getFeedWithFriends(userID,startPage,endPage).done(accept);
         }
       })
       .done((friendCount, result) => result);
   }
 
-  _getFeedWithFriends(userID) {
+  _getFeedWithFriends(userID,startPage,endPage) {
     return new Sequence((accept, reject) =>
       this.db.query(
         `MATCH (creator:Person) -[rel:OFFERS|:ASKS]-> (post:Post) -[:IS_ABOUT]-> (interest:Interest),
@@ -59,8 +61,10 @@ class FeedModel extends Model {
             creator.userID in COLLECT(friend.userID) as isFriend,
             COUNT( DISTINCT comments) AS commentCount, 
             COLLECT( DISTINCT commonFriend) AS commonFriends
-        ORDER BY rel.at DESC`,
-        { userID, maxDistance },
+        ORDER BY rel.at DESC
+        SKIP ${startPage*pageSize}
+        LIMIT ${endPage*pageSize - startPage*pageSize}`,
+        { userID, maxDistance, startPage, endPage },
         (err, response) => {
           if (err) return reject(err);
           return accept(response);
@@ -70,7 +74,7 @@ class FeedModel extends Model {
   }
 
   //include the comment to be returned with the feed
-  _getFeedWithoutFriends(userID) {
+  _getFeedWithoutFriends(userID,startPage,endPage) {
     return new Sequence((accept, reject) =>
       this.db.query(
         `MATCH (creator:Person) -[rel:OFFERS|:ASKS]-> (post:Post) -[:IS_ABOUT]-> (interest:Interest),
@@ -87,8 +91,10 @@ class FeedModel extends Model {
        
           [] AS commonFriends
           
-       ORDER BY rel.at DESC`,
-        { userID, maxDistance },
+       ORDER BY rel.at DESC
+       SKIP ${startPage*pageSize}
+       LIMIT ${endPage*pageSize - startPage*pageSize}`,
+        { userID, maxDistance, startPage, endPage },
         (err, response) => {
           if (err) return reject(err);
           return accept(response);

@@ -1,4 +1,5 @@
 import React, { Component, Fragment } from "react";
+import ReactDOM from "react-dom";
 import { Row, Col, Button, Alert } from "reactstrap";
 import { RingLoader } from "react-spinners";
 import Post from "../components/Post";
@@ -27,6 +28,9 @@ class Feed extends Component {
   state = {
     feed: [],
     loading: true,
+    currentPage: 0,
+    loadingNew : false,
+    reachedEnd: false,
     loadLastComments: [],
     postToUpdate: "",
     currentFilter: "MOSTRECENT",
@@ -40,11 +44,16 @@ class Feed extends Component {
   };
 
   componentWillMount() {
-    this.getFeeds();
+    this.getFeeds(false);
     this.setState({
       loadComment: false
     });
     this.forceUpdate();
+    window.addEventListener('scroll',this.handleScroll);
+    this.loadMoreRef = React.createRef();
+  }
+  componentWillUnmount(){
+    window.removeEventListener('scroll',this.handleScroll);
   }
 
   getComments = postID => {
@@ -72,12 +81,24 @@ class Feed extends Component {
       });
   };
 
-  getFeeds = () => {
+  getFeeds = (update) => {
+    if( !update && (this.state.reachedEnd || this.state.loadingNew) )
+      return;
+    if(this.state.currentPage > 0){
+      this.setState({
+        loadingNew: true
+      })
+    }
     this.setState({
       postToUpdate: ""
     });
+    let queryString = "";
+    if(update)
+      queryString = `0-${this.state.currentPage}`;
+    else
+      queryString = `${this.state.currentPage}-${this.state.currentPage + 1}`;
     //this will load the feed to the page and then will load all the comments for each post
-    fetch("/api/feed", {
+    fetch(`/api/feed/${queryString}`, {
       method: "GET",
       headers: {
         Accept: "application/json",
@@ -99,11 +120,34 @@ class Feed extends Component {
         return response;
       })
       .then(response => {
-        this.setState({
-          feed: response,
-          loadLastComments: [],
-          loading: false
-        });
+        if(response.length === 0){
+          this.setState({
+            reachedEnd : true
+          });
+          return;
+        }
+        if(!update) {
+          let feedClone = [...this.state.feed];
+          feedClone = feedClone.concat(response);
+          this.setState({
+            feed: feedClone,
+            currentPage : this.state.currentPage + 1,
+            loadLastComments: [],
+            loading: false
+          });
+        }
+        else{
+            this.setState({
+              feed: response,
+              loadLastComments: [],
+              loading: false
+            })
+        }
+        if(this.state.currentPage > 0){
+          this.setState({
+            loadingNew: false
+          })
+        }
       });
   };
 
@@ -132,7 +176,10 @@ class Feed extends Component {
         })
         .then(resp => {
           if (resp !== []) {
-            this.getFeeds();
+            this.setState({
+              loading:true
+            });
+            this.getFeeds(true);
           }
         });
     }
@@ -153,7 +200,7 @@ class Feed extends Component {
         })
         .then(resp => {
           if (resp !== []) {
-            this.getFeeds();
+            this.getFeeds(true);
           }
         });
   };
@@ -212,6 +259,15 @@ class Feed extends Component {
     this.setState({
       createPostClicked: !this.state.createPostClicked
     });
+  };
+
+  handleScroll = event => {
+    if(this.loadMoreRef == null || this.state.loadingNew || this.state.reachedEnd)
+      return;
+    let node = ReactDOM.findDOMNode(this.loadMoreRef.current);
+    if(node != null && node.getBoundingClientRect().top < window.innerHeight){
+      this.getFeeds(false);
+    }
   };
 
   render() {
@@ -301,6 +357,20 @@ class Feed extends Component {
                   </div>
                 );
               })}
+              {<Row id="feedRingLoaderMore">
+                <Col xs={4} />
+                <Col xs={4}>
+                  <div className="RingLoader center-loading" ref={this.loadMoreRef}>
+                    <RingLoader
+                      color="#123abc"
+                      loading={!this.state.reachedEnd}
+                      size={100} /*the size of the spinner*/
+                    />
+                  </div>
+                </Col>
+                <Col xs={4} />
+              </Row>}
+
             </Col>
           ) : (
             <Col sm={8}>
@@ -339,7 +409,7 @@ class Feed extends Component {
               defaultImage={this.state.defaultImage}
               loadingPost={this.loadPost}
               user={user}
-              updateFeeds={this.getFeeds}
+              updateFeeds={() => this.getFeeds(true)}
               postToUpdate={this.state.postToUpdate}
             />
           ) : (

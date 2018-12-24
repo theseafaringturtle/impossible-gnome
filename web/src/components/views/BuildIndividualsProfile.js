@@ -46,10 +46,10 @@ export default class BuildIndividualsProfile extends Component {
         this.setState({
           firstName: user.firstName,
           lastName: user.lastName,
-          description: user.description,
-          url: user.url,
-          imageSource: user.imageSource,
-          interests: interests,
+          description: user.description || "",
+          url: user.url || "",
+          imageSource: user.imageSource || "",
+          interests: interests || new Set(),
           pageLoaded: true
         });
       }
@@ -122,6 +122,7 @@ export default class BuildIndividualsProfile extends Component {
   };
 
   handleSubmitRequest = e => {
+    console.log(this.state.url);
     fetch(`/api/user`, {
       credentials: "same-origin",
       method: "POST",
